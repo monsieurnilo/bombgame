@@ -2,9 +2,12 @@ use crossterm::cursor;
 use rand::Rng;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
+use serde::{Serialize, Deserialize};
 
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Map {
-    layout: Vec<String>,
+    pub layout: Vec<String>,
 }
 
 impl Map {

@@ -1,18 +1,43 @@
 mod game;
 mod map;
 mod player;
+mod server;
+mod utils;
+
 
 use crossterm::{terminal, ExecutableCommand};
+use map::Map;
 use std::io::{self};
+use std::env;
+
 
 fn main() -> std::io::Result<()> {
-    let mut stdout = io::stdout();
-    stdout.execute(terminal::EnterAlternateScreen)?;
-    terminal::enable_raw_mode()?;
 
-    game::run_game()?;
+    if env::args().len() == 1 {
+        println!("Choisir mode client ou serveur");
+        return Ok(())
+    }
 
-    terminal::disable_raw_mode()?;
-    stdout.execute(terminal::LeaveAlternateScreen)?;
+    if env::args().nth(1).unwrap() == "server" {
+        let mut server1 = server::Server::new("0.0.0.0:8864".to_string()).unwrap();
+        server1.listen();
+        return Ok(())
+    } else {
+        let mut stdout = io::stdout();
+        stdout.execute(terminal::EnterAlternateScreen)?;
+        terminal::enable_raw_mode()?;
+    
+        match game::run_game(env::args().nth(1).unwrap().to_string()) {
+            Ok(()) => (),
+            Err(e) => print!("Mon erreur est {}", e),
+        }
+    
+        terminal::disable_raw_mode()?;
+        //stdout.execute(terminal::LeaveAlternateScreen)?;
+    }
+
+
+    // Ok(())
+
     Ok(())
 }
