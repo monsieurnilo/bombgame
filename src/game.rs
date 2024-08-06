@@ -23,7 +23,7 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
     let mut key_pressed = false; // Initialisation de la variable pour suivre l'état de la touche
     let sleep_duration = Duration::from_millis(10);
 
-    let mut stream = TcpStream::connect(bind_socket)?;
+
 
     let id = thread_rng().gen_range(0..std::u64::MAX);
 
@@ -62,16 +62,18 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
                             let pos = Position::new(player.get_x(), player.get_y());
                             let pos_update = utils::PositionMessage::new(id, pos);
                             let encoded = bincode::serialize(&pos_update).unwrap();
+                            
+                            let mut stream = TcpStream::connect(bind_socket.clone())?;
 
                             match stream.write(&encoded) {
-                                Ok(_) => (),
-                                Err(_) => println!("Error sending data")
+                                Ok(size) => println!("Data size : {}", size),
+                                Err(e) => println!("Error sending data : {}", e)
                             }
                             
 
                             let mut buffer: Vec<u8> = vec![];
 
-                            
+
 
                             match stream.read(&mut buffer) {
                                 Ok(_) => (),

@@ -1,9 +1,6 @@
-use core::panic;
-use std::collections::HashMap;
 use std::io::{prelude::*, Error};
 use std::net::{TcpListener, TcpStream};
 
-use crate::map::Map;
 
 
 use std::cell::RefCell;
@@ -27,9 +24,14 @@ impl Server {
     }
 
     pub fn listen(&mut self) {
-        for stream in self.listener.incoming() {
-            if let Ok(stream) = stream {
-                self.handle_stream(&stream).expect("Impossible de transmettre les informations au clients");
+        loop {
+            for stream in self.listener.incoming() {
+                if let Ok(stream) = stream {
+                    match self.handle_stream(&stream) {
+                        Ok(()) => (),
+                        Err(e) => println!("{}", e),
+                    }
+                }
             }
         }
     }
@@ -38,23 +40,43 @@ impl Server {
 
         let mut buffer: Vec<u8> = vec![];
 
-        stream.read(&mut buffer).expect("Impossible de repondre au client");
+        // match stream.read(&mut buffer) {
+        //     Ok(size) => println!("Readed size : {}", size),
+        //     Err(e) => println!("Cannot read data : {}", e),
+        // }
 
-        let new_pos: utils::PositionMessage = match bincode::deserialize(&buffer) {
-            Ok(pos) => pos,
-            Err(e) => {
-                println!("{}", e);
-                PositionMessage::new(0, Position::new(0, 0))
+        while match stream.read(&mut buffer) {
+            Ok(size) => {
+                // Echo the message back to the client       
+                let new_pos: utils::PositionMessage = match bincode::deserialize(&buffer) {
+                    Ok(pos) => pos,
+                    Err(e) => {
+                        println!("Erreur de lecture : {}", e);
+                        PositionMessage::new(0, Position::new(0, 0))
+                    }
+                };
+
+
+
+
+
+                self.state.borrow_mut().update(dbg!(new_pos));
+
+                let encoded: Vec<u8> = bincode::serialize(&self.state.borrow_mut().as_bytes()).unwrap();
+                stream.write(&encoded)?;
+
+                true
             }
-        };
+            Err(_) => {
+                println!("An error occurred, terminating connection with {}", stream.peer_addr().unwrap());
+                false
+            }
+        } {}
 
+        for v in &buffer {
+            println!("{}", v);
+        }
 
-
-
-        self.state.borrow_mut().update(new_pos);
-
-        let encoded = bincode::serialize(&self.state).unwrap();
-        stream.write(&encoded)?;
 
         Ok(())
     }

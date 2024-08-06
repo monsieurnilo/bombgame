@@ -29,7 +29,6 @@ impl PositionMessage {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-
 pub struct GameState {
     players_positions: HashMap<u64, Position>,
 }
@@ -55,6 +54,10 @@ impl GameState {
         }
 
         Ok(())
+    }
+
+    pub fn as_bytes(&self) -> Vec<u8> {
+        bincode::serialize(self).unwrap()
     }
 
 

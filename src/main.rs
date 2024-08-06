@@ -26,8 +26,11 @@ fn main() -> std::io::Result<()> {
         let mut stdout = io::stdout();
         stdout.execute(terminal::EnterAlternateScreen)?;
         terminal::enable_raw_mode()?;
+
+
+        
     
-        match game::run_game(env::args().nth(1).unwrap().to_string()) {
+        match game::run_game(dbg!(env::args().nth(1).unwrap().to_string())) {
             Ok(()) => (),
             Err(e) => print!("Mon erreur est {}", e),
         }
