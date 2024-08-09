@@ -38,7 +38,7 @@ impl Server {
 
     fn handle_stream(&self, mut stream: &TcpStream) -> Result<(), std::io::Error> {
 
-        let mut buffer: Vec<u8> = vec![];
+        let mut buffer: Vec<u8> = vec![0; 1024];
 
         // match stream.read(&mut buffer) {
         //     Ok(size) => println!("Readed size : {}", size),
@@ -46,9 +46,11 @@ impl Server {
         // }
 
         while match stream.read(&mut buffer) {
+            Ok(0) => false, // End the connection
             Ok(size) => {
-                // Echo the message back to the client       
-                let new_pos: utils::PositionMessage = match bincode::deserialize(&buffer) {
+                let bindata = buffer[..size].as_ref();
+                // Echo the message back to the client
+                let new_pos: utils::PositionMessage = match bincode::deserialize(bindata) {
                     Ok(pos) => pos,
                     Err(e) => {
                         println!("Erreur de lecture : {}", e);
@@ -56,13 +58,10 @@ impl Server {
                     }
                 };
 
-
-
-
-
                 self.state.borrow_mut().update(dbg!(new_pos));
 
-                let encoded: Vec<u8> = bincode::serialize(&self.state.borrow_mut().as_bytes()).unwrap();
+                let encoded: Vec<u8> = bincode::serialize(&self.state).unwrap();
+
                 stream.write(&encoded)?;
 
                 true
@@ -72,11 +71,6 @@ impl Server {
                 false
             }
         } {}
-
-        for v in &buffer {
-            println!("{}", v);
-        }
-
 
         Ok(())
     }

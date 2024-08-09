@@ -70,17 +70,15 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
                                 Err(e) => println!("Error sending data : {}", e)
                             }
                             
+                            let mut buffer: Vec<u8> = vec![0; 1024];
 
-                            let mut buffer: Vec<u8> = vec![];
+                            let Ok(n) = stream.read(&mut buffer) else {
+                                println!("Error reading data");
+                                continue;
+                            };
+                            let bindata = buffer[..n].as_ref();
 
-
-
-                            match stream.read(&mut buffer) {
-                                Ok(_) => (),
-                                Err(_) => println!("Error reading data")
-                            }
-
-                            if let Ok(new_state) = bincode::deserialize(&buffer) {
+                            if let Ok(new_state) = bincode::deserialize(&bindata) {
                                 state = new_state;
                             };
 
