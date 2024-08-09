@@ -9,3 +9,11 @@ crossterm = "*"
 rand = "*"
 serde = { version = "1.0.204", features = ["derive"]}
 serde_derive = "1.0.204"
+
+[[bin]]
+name = "server"
+path = "src/server.rs"
+
+[[bin]]
+name = "client"
+path = "src/client.rs"
