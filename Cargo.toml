@@ -9,6 +9,7 @@ crossterm = "*"
 rand = "*"
 serde = { version = "1.0.204", features = ["derive"]}
 serde_derive = "1.0.204"
+tokio = { version = "1", features = ["full"] }
 
 [[bin]]
 name = "server"
