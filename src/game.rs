@@ -44,6 +44,7 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
                         _ => {
                             let (potential_new_x, potential_new_y) =
                                 player.calculate_new_position(event.code);
+                            //println!("x :{}, y:{} ",potential_new_x, potential_new_y);
                         
                             if !map.is_wall(potential_new_x.into(), potential_new_y.into()) {
                                 player.move_player(event.code, &map);
@@ -62,14 +63,27 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
                             let pos = Position::new(player.get_x(), player.get_y());
                             let pos_update = utils::PositionMessage::new(id, pos);
                             let encoded = bincode::serialize(&pos_update).unwrap();
-                            
-                            let mut stream = TcpStream::connect(bind_socket.clone())?;
+                            println!("{}", bind_socket);
 
+                            //let mut stream = TcpStream::connect(bind_socket.clone())?;
+
+                            let mut stream = match TcpStream::connect(bind_socket.clone()) {
+                                Ok(stream) => {
+                                    println!("OK");
+                                    stream}
+                                    ,
+                                Err(e) => {
+                                    println!("Failed to connect to server: {}", e);
+                                    return Err(e);
+                                }
+                            };
+
+                            println!("Avant le write");
                             match stream.write(&encoded) {
                                 Ok(size) => println!("Data size : {}", size),
                                 Err(e) => println!("Error sending data : {}", e)
                             }
-                            
+                            println!("Après le write");
                             let mut buffer: Vec<u8> = vec![0; 1024];
 
                             let Ok(n) = stream.read(&mut buffer) else {

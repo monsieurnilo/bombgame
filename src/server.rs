@@ -19,6 +19,7 @@ pub struct Server {
 impl Server {
     pub fn new(bind_socket: String) -> Result<Server, Error> {
         let listener = TcpListener::bind(bind_socket)?;
+        println!("Je suis dans le server");
 
         Ok(Server { state: RefCell::new(GameState::new()), listener })
     }
@@ -48,6 +49,7 @@ impl Server {
         while match stream.read(&mut buffer) {
             Ok(0) => false, // End the connection
             Ok(size) => {
+                println!("Size is : {}", size);
                 let bindata = buffer[..size].as_ref();
                 // Echo the message back to the client
                 let new_pos: utils::PositionMessage = match bincode::deserialize(bindata) {
