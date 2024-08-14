@@ -1,30 +1,28 @@
 use std::io::{prelude::*, Error};
 use std::net::{TcpListener, TcpStream};
 
-
-
 use std::cell::RefCell;
 
 use bincode;
 
 use crate::utils::{self, GameState, Position, PositionMessage};
 
-
 use std::fs::File;
-
 
 pub struct Server {
     state: RefCell<GameState>,
     listener: TcpListener,
 }
 
-
 impl Server {
     pub fn new(bind_socket: String) -> Result<Server, Error> {
         let listener = TcpListener::bind(bind_socket)?;
         //println!("Je suis dans le server");
 
-        Ok(Server { state: RefCell::new(GameState::new()), listener })
+        Ok(Server {
+            state: RefCell::new(GameState::new()),
+            listener,
+        })
     }
 
     pub fn listen(&mut self) {
@@ -41,7 +39,6 @@ impl Server {
     }
 
     fn handle_stream(&self, mut stream: &TcpStream) -> Result<(), std::io::Error> {
-
         let mut buffer: Vec<u8> = vec![0; 1024];
 
         // match stream.read(&mut buffer) {
@@ -71,14 +68,15 @@ impl Server {
 
                 stream.write(&encoded)?;
 
-
                 logs_file.write(format!("{:?}", self.state).as_bytes())?;
-
 
                 true
             }
             Err(_) => {
-                println!("An error occurred, terminating connection with {}", stream.peer_addr().unwrap());
+                println!(
+                    "An error occurred, terminating connection with {}",
+                    stream.peer_addr().unwrap()
+                );
                 false
             }
         } {}
@@ -86,4 +84,3 @@ impl Server {
         Ok(())
     }
 }
-
