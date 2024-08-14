@@ -13,7 +13,6 @@ impl Player {
         Self { x, y }
     }
 
-    //getter
     pub fn get_x(&self) -> u16 {
         self.x
     }
@@ -22,6 +21,7 @@ impl Player {
         self.y
     }
 
+    // Détermine la nouvelle position du joueur en fonction de la touche pressée
     pub fn calculate_new_position(&self, key: crossterm::event::KeyCode) -> (u16, u16) {
         match key {
             crossterm::event::KeyCode::Up => {
@@ -56,6 +56,7 @@ impl Player {
         }
     }
 
+    // Déplace le joueur en fonction de la touche pressée
     pub fn move_player(&mut self, key: crossterm::event::KeyCode, map: &Map) {
         match key {
             crossterm::event::KeyCode::Up => {
@@ -82,6 +83,7 @@ impl Player {
         }
     }
 
+    // Dessine le joueur à l'écran
     pub fn draw<W: Write>(&self, stdout: &mut W) -> io::Result<()> {
         write!(stdout, "{}.", cursor::MoveTo(self.x, self.y))?; // Efface la position précédente avec un point
         write!(stdout, "{}@", cursor::MoveTo(self.x, self.y))?; // Affiche le joueur à la nouvelle position

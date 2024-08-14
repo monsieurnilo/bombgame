@@ -1,10 +1,12 @@
 use crossterm::cursor;
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Map {
-    layout: Vec<String>,
+    pub layout: Vec<String>,
 }
 
 impl Map {
@@ -30,6 +32,7 @@ impl Map {
         Ok(())
     }
 
+    // Vérifie si une position donnée est un element de gameplay
     pub fn is_wall(&self, x: usize, y: usize) -> bool {
         self.layout[y].chars().nth(x).unwrap() == '─'
             || self.layout[y].chars().nth(x).unwrap() == '┌'
@@ -47,8 +50,8 @@ impl Map {
         self.layout[y].chars().nth(x).unwrap() == 'B'
     }
 
+    // Génère un nombre donné de bombes aléatoirement sur la carte
     pub fn spawn_bombs(&mut self, num_bombs: usize) {
-        // Modifier `&self` en `&mut self` pour permettre la modification
         let mut rng = rand::thread_rng();
         let mut count = 0;
 
@@ -57,7 +60,6 @@ impl Map {
             let y: usize = rng.gen_range(0..self.height());
 
             if self.layout[y].chars().nth(x) == Some('░') {
-                // Correction: Utiliser une approche qui modifie effectivement la chaîne
                 let mut chars: Vec<char> = self.layout[y].chars().collect();
                 chars[x] = 'B';
                 self.layout[y] = chars.into_iter().collect();
@@ -66,6 +68,7 @@ impl Map {
         }
     }
 
+    // Génère une position aléatoire pour le joueur
     pub fn random_position(&self) -> (u16, u16) {
         let mut rng = rand::thread_rng();
         let mut x: u16 = rng.gen_range(0..self.width() as u16);
