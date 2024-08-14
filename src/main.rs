@@ -6,7 +6,6 @@ mod utils;
 
 
 use crossterm::{terminal, ExecutableCommand};
-use map::Map;
 use std::io::{self};
 use std::env;
 

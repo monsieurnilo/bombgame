@@ -10,6 +10,9 @@ use bincode;
 use crate::utils::{self, GameState, Position, PositionMessage};
 
 
+use std::fs::File;
+
+
 pub struct Server {
     state: RefCell<GameState>,
     listener: TcpListener,
@@ -19,7 +22,7 @@ pub struct Server {
 impl Server {
     pub fn new(bind_socket: String) -> Result<Server, Error> {
         let listener = TcpListener::bind(bind_socket)?;
-        println!("Je suis dans le server");
+        //println!("Je suis dans le server");
 
         Ok(Server { state: RefCell::new(GameState::new()), listener })
     }
@@ -30,7 +33,7 @@ impl Server {
                 if let Ok(stream) = stream {
                     match self.handle_stream(&stream) {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e),
+                        Err(e) => (), //println!("{}", e),
                     }
                 }
             }
@@ -46,16 +49,18 @@ impl Server {
         //     Err(e) => println!("Cannot read data : {}", e),
         // }
 
+        let mut logs_file = File::create("server_logs.txt")?;
+
         while match stream.read(&mut buffer) {
             Ok(0) => false, // End the connection
             Ok(size) => {
-                println!("Size is : {}", size);
+                ////println!("Size is : {}", size);
                 let bindata = buffer[..size].as_ref();
                 // Echo the message back to the client
                 let new_pos: utils::PositionMessage = match bincode::deserialize(bindata) {
                     Ok(pos) => pos,
                     Err(e) => {
-                        println!("Erreur de lecture : {}", e);
+                        ////println!("Erreur de lecture : {}", e);
                         PositionMessage::new(0, Position::new(0, 0))
                     }
                 };
@@ -65,6 +70,10 @@ impl Server {
                 let encoded: Vec<u8> = bincode::serialize(&self.state).unwrap();
 
                 stream.write(&encoded)?;
+
+
+                logs_file.write(format!("{:?}", self.state).as_bytes())?;
+
 
                 true
             }

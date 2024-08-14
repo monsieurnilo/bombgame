@@ -10,6 +10,8 @@ use crate::map::Map;
 use crate::player::Player;
 use crate::utils::{self, GameState, Position};
 
+use std::fs::File;
+
 
 use bincode;
 
@@ -23,7 +25,7 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
     let mut key_pressed = false; // Initialisation de la variable pour suivre l'état de la touche
     let sleep_duration = Duration::from_millis(10);
 
-
+    let mut log_file = File::create("logs.txt")?;
 
     let id = thread_rng().gen_range(0..std::u64::MAX);
 
@@ -32,8 +34,8 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
     loop {
         stdout.execute(cursor::Hide)?;
         map.draw(&mut stdout)?;
-        player.draw(&mut stdout)?;
         state.draw(&mut stdout)?;
+        player.draw(&mut stdout)?;
         stdout.flush()?;
 
         if event::poll(Duration::ZERO)? {
@@ -63,27 +65,24 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
                             let pos = Position::new(player.get_x(), player.get_y());
                             let pos_update = utils::PositionMessage::new(id, pos);
                             let encoded = bincode::serialize(&pos_update).unwrap();
-                            println!("{}", bind_socket);
+                            //println!("{}", bind_socket);
 
                             //let mut stream = TcpStream::connect(bind_socket.clone())?;
 
                             let mut stream = match TcpStream::connect(bind_socket.clone()) {
-                                Ok(stream) => {
-                                    println!("OK");
-                                    stream}
-                                    ,
+                                Ok(stream) => stream,
                                 Err(e) => {
                                     println!("Failed to connect to server: {}", e);
                                     return Err(e);
                                 }
                             };
 
-                            println!("Avant le write");
+                            //println!("Avant le write");
                             match stream.write(&encoded) {
-                                Ok(size) => println!("Data size : {}", size),
+                                Ok(_) => (),
                                 Err(e) => println!("Error sending data : {}", e)
                             }
-                            println!("Après le write");
+                            //println!("Après le write");
                             let mut buffer: Vec<u8> = vec![0; 1024];
 
                             let Ok(n) = stream.read(&mut buffer) else {
@@ -94,7 +93,10 @@ pub fn run_game(bind_socket: String) -> io::Result<()> {
 
                             if let Ok(new_state) = bincode::deserialize(&bindata) {
                                 state = new_state;
-                            };
+                                log_file.write(format!("{:?}", state).as_bytes())?;
+                            } else {
+                                println!("Impossible de récuperér le nouveau state.");
+                            }
 
 
                         }

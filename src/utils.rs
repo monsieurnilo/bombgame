@@ -42,8 +42,8 @@ impl GameState {
         GameState { players_positions: HashMap::new() }
     }
 
-    pub fn update(&mut self, mut pos_message: PositionMessage) {
-        let _ = self.players_positions.get_mut(&pos_message.id).insert(&mut pos_message.pos);
+    pub fn update(&mut self, pos_message: PositionMessage) {
+        let _ = self.players_positions.insert(pos_message.id, pos_message.pos);
     }
 
     pub fn draw<W: Write>(&self, stdout: &mut W) -> io::Result<()> {
@@ -55,10 +55,5 @@ impl GameState {
 
         Ok(())
     }
-
-    pub fn as_bytes(&self) -> Vec<u8> {
-        bincode::serialize(self).unwrap()
-    }
-
 
 }
